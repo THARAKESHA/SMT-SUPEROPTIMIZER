@@ -1,0 +1,34 @@
+# Benchmark basic blocks for the SMT-Based Superoptimizer demo.
+# Each block is separated by a line of at-signs.
+# Each section's LAST instruction's destination is the block's output.
+# Cost metric used by run_demo.py: weighted_cost (estimated cycles).
+
+# 1. Double-add -> single shift
+t0 = ADD x, x
+t1 = ADD t0, t0
+
+@@@
+
+# 2. Triple-add (3x) -> single multiply
+t0 = ADD x, x
+y = ADD t0, x
+
+@@@
+
+# 3. Multiply-by-2 -> shift-left-1 (equal instruction count, cheaper cycles)
+y = MUL x, 2
+
+@@@
+
+# 4. Self-AND -> already minimal
+y = AND x, x
+
+@@@
+
+# 5. Self-XOR -> already minimal (zero), no shorter form exists
+y = XOR x, x
+
+@@@
+
+# 6. Already-minimal block with a constant operand
+y = ADD x, 5
