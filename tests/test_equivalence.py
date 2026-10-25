@@ -126,3 +126,32 @@ def test_overflow_semantics_preserved_at_max_value():
     lhs = (x_val + x_val) & mask
     rhs = (x_val << 1) & mask
     assert lhs == rhs == 0  # both wrap to 0 at this boundary
+
+
+# ---------------------------------------------------------------------
+# Bit rotation tests (ROL / ROR)
+# ---------------------------------------------------------------------
+
+def test_rotate_left_equals_shift_and_or():
+    original = parse_block("t0 = SHL x, 1\nt1 = SHR x, 31\ny = OR t0, t1")
+    candidate = parse_block("y = ROL x, 1")
+    result = check_equivalent(original, candidate)
+    assert result.is_equivalent is True
+    assert result.solver_result == "unsat"
+
+
+def test_rotate_right_equals_shift_and_or():
+    original = parse_block("t0 = SHR x, 1\nt1 = SHL x, 31\ny = OR t0, t1")
+    candidate = parse_block("y = ROR x, 1")
+    result = check_equivalent(original, candidate)
+    assert result.is_equivalent is True
+    assert result.solver_result == "unsat"
+
+
+def test_rotate_left_different_amount_is_not_equivalent():
+    original = parse_block("y = ROL x, 1")
+    wrong_candidate = parse_block("y = ROL x, 2")
+    result = check_equivalent(original, wrong_candidate)
+    assert result.is_equivalent is False
+    assert result.solver_result == "sat"
+    assert "x" in result.counterexample

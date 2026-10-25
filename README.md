@@ -66,11 +66,12 @@ Requires Python 3.9+ and the `z3-solver` package.
 python3 -m pytest tests/ -v
 ```
 
-33 tests covering: valid (positive) equivalences, invalid (negative)
-cases with real counterexamples, a boundary/overflow case, candidate
-generation correctness, cost model behaviour, and full end-to-end
-integration — including a regression test for a real defect found and
-fixed during development (see "Known defect log" below).
+40 tests covering: valid (positive) equivalences, invalid (negative)
+cases with real counterexamples, a boundary/overflow case, bit rotation
+semantics (ROL/ROR), dynamic constant harvesting, candidate generation
+correctness, cost model behaviour, and full end-to-end integration —
+including a regression test for a real defect found and fixed during
+development (see "Known defect log" below).
 
 ## Running the live demo
 
@@ -82,7 +83,9 @@ Runs the full pipeline (Parser → IR → Candidate Generator → SMT
 Encoder → Equivalence Checker → Cost Model) on every block in
 `benchmarks/blocks.txt` and prints a results table: original cost,
 best proven-equivalent cost found, whether it improved, how many
-candidates were checked, and solve time.
+candidates were checked, and solve time. Includes demonstrations of
+3-to-1 bit-rotation reduction (`SHL + SHR + OR -> ROL`) and power-of-two
+multiplication reduction (`MUL x, 8 -> SHL x, 3`).
 
 ## Known defect log
 
@@ -90,17 +93,16 @@ candidates were checked, and solve time.
 |---|---|---|---|---|
 | `check_equivalent()` incorrectly rejected valid candidates that read no input variable at all (e.g. `y = CONST 0`) | During Review 2 test-suite development | Equivalence checker required `original.inputs == candidate.inputs` exactly; a constant-only candidate legitimately has an empty inputs list | Changed the check to require `candidate.inputs ⊆ original.inputs` (a candidate may use fewer inputs than the original, never more) | `test_regression_constant_only_candidate_not_falsely_rejected` in `tests/test_equivalence.py` |
 
-## Current scope and limitations
+## Current scope and features
 
-- Basic blocks only (no branches or loops) — matches Review 1 scope.
-- 32-bit fixed-width bitvector arithmetic.
-- Opcode set: ADD, SUB, AND, OR, XOR, SHL, SHR, NOT, NEG, MUL, CONST.
-- Candidate search is bounded by block length and a small constant
-  pool (0–4) to keep each Z3 query small; this is an exhaustive
-  search within that bound, not a heuristic one.
+- Basic blocks only (straight-line code without branches or loops).
+- 32-bit fixed-width bitvector arithmetic faithful to hardware registers.
+- Opcode set (13 instructions): ADD, SUB, AND, OR, XOR, SHL, SHR, ROL, ROR, NOT, NEG, MUL, CONST.
+- **Dynamic Constant Harvesting**: Automatically extracts integer literals, powers-of-two logarithms (shift amounts), and rotation complements from the input block, enabling arbitrary constant optimization.
+- **Hardware Bit-Rotation Optimization**: Superoptimizes C-style 3-instruction shift/shift/OR cascades directly into a single native hardware `ROL`/`ROR` instruction.
 - Cost model provided in two forms: `simple_cost` (instruction count)
   and `weighted_cost` (rough estimated-cycle weighting that penalizes
-  MUL relative to ADD/shift/bitwise ops).
+  MUL relative to ADD/shift/bitwise/rotate ops).
 
 ## Pending for Review 3
 

@@ -32,3 +32,16 @@ y = XOR x, x
 
 # 6. Already-minimal block with a constant operand
 y = ADD x, 5
+
+@@@
+
+# 7. Bit rotation (3 instructions -> 1 ROL)
+t0 = SHL x, 1
+t1 = SHR x, 31
+y = OR t0, t1
+
+@@@
+
+# 8. Multiply-by-8 -> shift-left-3 (harvested constant)
+y = MUL x, 8
+

@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from .ir import BasicBlock
-from .candidate_gen import generate_candidates_up_to
+from .candidate_gen import generate_candidates_up_to, harvest_constants
 from .equivalence import check_equivalent
 from .cost_model import simple_cost
 
@@ -56,6 +56,7 @@ def superoptimize(block: BasicBlock, opcode_set: List[str],
     outcome, not a failure of the tool)."""
     start = time.time()
     max_length = max_length if max_length is not None else block.instruction_count()
+    const_pool = harvest_constants(block) if const_pool is None else const_pool
 
     best = block
     best_cost = cost_fn(block)

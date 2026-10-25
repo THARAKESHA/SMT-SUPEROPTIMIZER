@@ -60,3 +60,27 @@ def test_result_is_always_reverifiable():
     result = superoptimize(block, OPCODE_SET)
     recheck = check_equivalent(result.original, result.best)
     assert recheck.is_equivalent is True
+
+
+def test_bit_rotation_cascade_reduces_to_rol():
+    """A 3-instruction shift/shift/OR sequence should be superoptimized
+    to a single ROL (rotate left) instruction."""
+    block = parse_block("t0 = SHL x, 1\nt1 = SHR x, 31\ny = OR t0, t1")
+    opcodes = OPCODE_SET + ["ROL", "ROR"]
+    result = superoptimize(block, opcodes, max_length=1)
+    assert result.improved is True
+    assert result.best_cost == 1
+    assert result.original_cost == 3
+    assert result.best.opcodes_used() == ["ROL"]
+
+
+def test_multiply_by_8_reduces_to_shift_left_3():
+    """y = MUL x, 8 should be superoptimized to SHL x, 3 by dynamically
+    harvesting the constant 8 and its power-of-two log 3."""
+    from src.cost_model import weighted_cost
+    block = parse_block("y = MUL x, 8")
+    opcodes = OPCODE_SET + ["MUL"]
+    result = superoptimize(block, opcodes, max_length=1, cost_fn=weighted_cost)
+    assert result.improved is True
+    assert result.best_cost < result.original_cost
+    assert result.best.opcodes_used() == ["SHL"]

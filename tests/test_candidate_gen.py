@@ -1,5 +1,6 @@
 """Tests for src/candidate_gen.py -- Member 3's module."""
-from src.candidate_gen import generate_candidates, generate_candidates_up_to
+from src.candidate_gen import generate_candidates, generate_candidates_up_to, harvest_constants
+from src.parser import parse_block
 
 
 def test_generate_length1_candidates_nonempty():
@@ -34,3 +35,18 @@ def test_generate_up_to_covers_all_lengths():
     pairs = list(generate_candidates_up_to(["x"], max_length=2, opcode_set=["ADD"], const_pool=[0, 1]))
     lengths_seen = {length for length, _ in pairs}
     assert lengths_seen == {1, 2}
+
+
+def test_harvest_constants_extracts_literals_and_powers():
+    block = parse_block("y = MUL x, 8")
+    harvested = harvest_constants(block)
+    assert 8 in harvested
+    assert 3 in harvested  # log2(8) == 3
+
+
+def test_harvest_constants_extracts_rotation_complements():
+    block = parse_block("t0 = SHL x, 1\nt1 = SHR x, 31\ny = OR t0, t1")
+    harvested = harvest_constants(block)
+    assert 1 in harvested
+    assert 31 in harvested
+

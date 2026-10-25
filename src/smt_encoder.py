@@ -74,6 +74,10 @@ def encode_instruction(ins: Instruction, env: dict, width: int = BIT_WIDTH):
             result = z3_lshr(a_expr, b_expr)
         elif op == "MUL":
             result = a_expr * b_expr
+        elif op == "ROL":
+            result = z3_rotate_left(a_expr, b_expr)
+        elif op == "ROR":
+            result = z3_rotate_right(a_expr, b_expr)
         else:
             raise ValueError(f"No SMT encoding defined for opcode '{op}'")
 
@@ -86,6 +90,18 @@ def z3_lshr(a_expr, b_expr):
     is documented at the call site."""
     from z3 import LShR
     return LShR(a_expr, b_expr)
+
+
+def z3_rotate_left(a_expr, b_expr):
+    """Bitvector rotate left."""
+    from z3 import RotateLeft
+    return RotateLeft(a_expr, b_expr)
+
+
+def z3_rotate_right(a_expr, b_expr):
+    """Bitvector rotate right."""
+    from z3 import RotateRight
+    return RotateRight(a_expr, b_expr)
 
 
 def encode_block(block: BasicBlock, input_vars: dict, width: int = BIT_WIDTH) -> BitVecRef:

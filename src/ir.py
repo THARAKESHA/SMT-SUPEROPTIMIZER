@@ -39,6 +39,8 @@ OPCODES: Dict[str, dict] = {
     "NOT":   {"arity": 1, "desc": "bitwise NOT"},
     "NEG":   {"arity": 1, "desc": "two's-complement negation"},
     "MUL":   {"arity": 2, "desc": "bitvector multiplication"},
+    "ROL":   {"arity": 2, "desc": "rotate left"},
+    "ROR":   {"arity": 2, "desc": "rotate right"},
     "CONST": {"arity": 1, "desc": "load an immediate constant"},
 }
 

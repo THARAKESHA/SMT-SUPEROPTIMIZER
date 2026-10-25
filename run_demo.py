@@ -14,7 +14,7 @@ from src.parser import parse_block
 from src.superoptimizer import superoptimize
 from src.cost_model import weighted_cost
 
-OPCODE_SET = ["ADD", "SUB", "AND", "OR", "XOR", "SHL", "SHR", "NOT", "CONST", "MUL"]
+OPCODE_SET = ["ADD", "SUB", "AND", "OR", "XOR", "SHL", "SHR", "NOT", "CONST", "MUL", "ROL", "ROR"]
 
 
 def load_benchmarks(path: str):

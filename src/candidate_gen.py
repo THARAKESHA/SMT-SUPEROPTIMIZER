@@ -30,6 +30,31 @@ from .ir import Instruction, BasicBlock, OPCODES
 DEFAULT_CONST_POOL = [0, 1, 2, 3, 4]
 
 
+def harvest_constants(block: BasicBlock, base_pool: List[int] = None) -> List[int]:
+    """Dynamically harvest constants from a basic block to expand synthesis power.
+    
+    Extracts all explicit integer constants in the block, plus:
+    - Logarithms of powers-of-two (e.g. 8 = 2^3 -> extracts 3, enabling MUL->SHL)
+    - Complementary shift amounts for 32-bit rotations (e.g. 1 and 31)
+    - Base small constants to guarantee fundamental identities
+    """
+    base = DEFAULT_CONST_POOL if base_pool is None else base_pool
+    harvested = set(base)
+
+    for ins in block.instructions:
+        for arg in ins.args:
+            if isinstance(arg, int):
+                harvested.add(arg)
+                # Power-of-two exponent: e.g. 8 -> 3, 16 -> 4, 32 -> 5
+                if arg > 0 and (arg & (arg - 1)) == 0:
+                    harvested.add(arg.bit_length() - 1)
+                # Complementary shift amounts for 32-bit word rotations
+                if 0 < arg < 32:
+                    harvested.add(32 - arg)
+
+    return sorted(harvested)
+
+
 def _operand_pool(defined_regs: List[str], const_pool: List[int]):
     return list(defined_regs) + list(const_pool)
 
