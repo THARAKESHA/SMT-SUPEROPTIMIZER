@@ -22,7 +22,7 @@ from .ir import BasicBlock
 OPCODE_WEIGHT = {
     "ADD": 1, "SUB": 1, "AND": 1, "OR": 1, "XOR": 1,
     "SHL": 1, "SHR": 1, "NOT": 1, "NEG": 1, "CONST": 1,
-    "ROL": 1, "ROR": 1,
+    "ROL": 1, "ROR": 1, "SEL": 1,
     "MUL": 3,
 }
 

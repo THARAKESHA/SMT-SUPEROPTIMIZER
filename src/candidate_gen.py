@@ -23,9 +23,11 @@ instruction scope, guaranteeing that if a cheaper equivalent exists
 within the length bound, this generator will eventually produce it.
 """
 
-from itertools import product
+from itertools import product, combinations_with_replacement
 from typing import List, Iterator
 from .ir import Instruction, BasicBlock, OPCODES
+
+COMMUTATIVE_OPS = {"ADD", "AND", "OR", "XOR", "MUL"}
 
 DEFAULT_CONST_POOL = [0, 1, 2, 3, 4]
 
@@ -89,6 +91,10 @@ def generate_candidates(inputs: List[str], length: int, opcode_set: List[str],
 
             if op == "CONST":
                 arg_choices = [(c,) for c in const_pool]
+            elif op in COMMUTATIVE_OPS and arity == 2:
+                # Commutative symmetry breaking: eliminates duplicate symmetric
+                # pairs (a, b) and (b, a), pruning ~50% of the search space.
+                arg_choices = list(combinations_with_replacement(pool, 2))
             else:
                 arg_choices = list(product(pool, repeat=arity))
 

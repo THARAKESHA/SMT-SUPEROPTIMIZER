@@ -25,6 +25,7 @@ from .ir import BasicBlock
 from .candidate_gen import generate_candidates_up_to, harvest_constants
 from .equivalence import check_equivalent
 from .cost_model import simple_cost
+from .cache import OptimizationCache
 
 
 @dataclass
@@ -47,13 +48,28 @@ class SuperoptResult:
 def superoptimize(block: BasicBlock, opcode_set: List[str],
                    max_length: Optional[int] = None,
                    const_pool: Optional[List[int]] = None,
-                   cost_fn=simple_cost) -> SuperoptResult:
+                   cost_fn=simple_cost,
+                   cache: Optional[OptimizationCache] = None) -> SuperoptResult:
     """Search for a proven-equivalent, lower-cost replacement for `block`.
 
     Returns a SuperoptResult describing the best block found (which may
     simply be the original, if no cheaper proven-equivalent candidate
     exists within the search bound -- this is a legitimate, honest
     outcome, not a failure of the tool)."""
+    if cache is not None:
+        cached_best = cache.get(block)
+        if cached_best is not None:
+            orig_cost = cost_fn(block)
+            best_cost = cost_fn(cached_best)
+            return SuperoptResult(
+                original=block,
+                best=cached_best,
+                improved=(str(cached_best) != str(block)),
+                original_cost=orig_cost,
+                best_cost=best_cost,
+                stats=SearchStats(candidates_checked=0, time_seconds=0.000, lengths_searched=[]),
+            )
+
     start = time.time()
     max_length = max_length if max_length is not None else block.instruction_count()
     const_pool = harvest_constants(block) if const_pool is None else const_pool
@@ -80,6 +96,9 @@ def superoptimize(block: BasicBlock, opcode_set: List[str],
             best_cost = cand_cost
 
     elapsed = time.time() - start
+    if cache is not None:
+        cache.put(block, best, cost_fn(block), best_cost, elapsed)
+
     return SuperoptResult(
         original=block,
         best=best,

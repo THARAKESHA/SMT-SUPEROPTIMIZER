@@ -41,6 +41,7 @@ OPCODES: Dict[str, dict] = {
     "MUL":   {"arity": 2, "desc": "bitvector multiplication"},
     "ROL":   {"arity": 2, "desc": "rotate left"},
     "ROR":   {"arity": 2, "desc": "rotate right"},
+    "SEL":   {"arity": 3, "desc": "branchless select (if cond != 0 then true_val else false_val)"},
     "CONST": {"arity": 1, "desc": "load an immediate constant"},
 }
 

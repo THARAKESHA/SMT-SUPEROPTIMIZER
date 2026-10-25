@@ -54,6 +54,13 @@ def encode_instruction(ins: Instruction, env: dict, width: int = BIT_WIDTH):
         a_expr = _as_expr(a, env, width)
         result = (~a_expr) if op == "NOT" else (-a_expr)
 
+    elif op == "SEL":
+        c, a, b = ins.args
+        c_expr = _as_expr(c, env, width)
+        a_expr = _as_expr(a, env, width)
+        b_expr = _as_expr(b, env, width)
+        result = z3_select(c_expr, a_expr, b_expr)
+
     else:
         a, b = ins.args
         a_expr = _as_expr(a, env, width)
@@ -102,6 +109,12 @@ def z3_rotate_right(a_expr, b_expr):
     """Bitvector rotate right."""
     from z3 import RotateRight
     return RotateRight(a_expr, b_expr)
+
+
+def z3_select(cond_expr, true_expr, false_expr):
+    """Branchless conditional select: if cond != 0 then true_val else false_val."""
+    from z3 import If
+    return If(cond_expr != 0, true_expr, false_expr)
 
 
 def encode_block(block: BasicBlock, input_vars: dict, width: int = BIT_WIDTH) -> BitVecRef:
