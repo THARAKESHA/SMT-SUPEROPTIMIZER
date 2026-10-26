@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-run_demo.py -- Live demonstration script for Review 2.
+run_demo.py -- Live demonstration script for Review 2 & Review 3.
 
 Runs the full pipeline (Parser -> IR -> Candidate Generator ->
 SMT Encoder -> Equivalence Checker -> Cost Model) on every benchmark
 block in benchmarks/blocks.txt and prints a results table.
 
 Usage:
-    python3 run_demo.py
+    python run_demo.py              # Uses persistent cache (instant 0.000s warm run)
+    python run_demo.py --cold       # Disables cache (runs full synthesis from scratch ~2.8s)
+    python run_demo.py --interactive# Launches interactive live REPL shell
 """
 import sys
 import time
@@ -83,9 +85,14 @@ def interactive_shell():
 
 
 def main():
+    no_cache = "--no-cache" in sys.argv or "--cold" in sys.argv
     benchmarks = load_benchmarks("benchmarks/blocks.txt")
-    cache = OptimizationCache()
+    cache = None if no_cache else OptimizationCache()
 
+    mode_label = "COLD RUN (Full Synthesis from Scratch - No Cache)" if no_cache else "WARM RUN (Persistent Cache Memoization)"
+    print("=" * 80)
+    print(f"  MODE: {mode_label}")
+    print("=" * 80)
     print(f"{'Benchmark':38} {'Orig':>5} {'Best':>5} {'Improved?':>10} {'Checked':>8} {'Time(s)':>8}")
     print("-" * 80)
 
@@ -105,8 +112,9 @@ def main():
 
     total_elapsed = time.time() - total_start
     print("-" * 80)
+    hits = cache.hits if cache else 0
     print(f"Benchmarks run: {len(benchmarks)}   Improved: {improved_count}   "
-          f"Total time: {total_elapsed:.3f}s   Cache hits: {cache.hits}")
+          f"Total time: {total_elapsed:.3f}s   Cache hits: {hits}")
 
 
 if __name__ == "__main__":

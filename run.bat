@@ -14,47 +14,62 @@ echo                 SMT-Based Superoptimizer Using Z3 Solver
 echo               Team: A13  ^|  Project ID: CD-SMT-01  ^|  Marks: 10
 echo ===============================================================================
 echo.
-echo   [1] Run 8 Compiler Benchmarks (Normal Use Case Demo)
-echo   [2] Run Complete 44-Test Automated Testbench (Pytest - 100%% Pass)
-echo   [3] Launch Interactive Live REPL Shell (Evaluator Custom Inputs)
-echo   [4] Run Boundary 32-Bit Overflow Test (0xFFFFFFFF Wrap-Around)
-echo   [5] Run Cache Memoization Speedup Test (Cold vs Warm: 0.000s)
-echo   [6] Open Final Presentation Slides (.pptx)
-echo   [7] Open Consolidated Final Report (.pdf)
-echo   [8] Open Live GitHub Repository in Browser
+echo   [1] Run 8 Benchmarks (WARM RUN: Instant 0.000s via Persistent Cache)
+echo   [2] Run 8 Benchmarks (COLD RUN: Full Z3 Synthesis from Scratch)
+echo   [3] Run Complete 44-Test Automated Testbench (Pytest - 100%% Pass)
+echo   [4] Launch Interactive Live REPL Shell (Evaluator Custom Inputs)
+echo   [5] Run Boundary 32-Bit Overflow Test (0xFFFFFFFF Wrap-Around)
+echo   [6] Compare Cold vs Warm Cache Speedup Side-by-Side
+echo   [7] Open Final Presentation Slides (.pptx)
+echo   [8] Open Consolidated Final Report (.pdf)
+echo   [9] Open Live GitHub Repository in Browser
 echo   -----------------------------------------------------------------------------
 echo   [A] Run Complete 7-Stage Review 3 Demonstration Sequence
 echo   [Q] Quit
 echo ===============================================================================
 echo.
 set "choice="
-set /p choice="Select an option [1-8, A, Q] (Press Enter for Default [1]): "
+set /p choice="Select an option [1-9, A, Q] (Press Enter for Default [1]): "
 
 if defined choice set choice=%choice: =%
 if "%choice%"=="" set choice=1
-if /i "%choice%"=="1" goto opt_benchmarks
-if /i "%choice%"=="2" goto opt_tests
-if /i "%choice%"=="3" goto opt_repl
-if /i "%choice%"=="4" goto opt_overflow
-if /i "%choice%"=="5" goto opt_cache
-if /i "%choice%"=="6" goto opt_pptx
-if /i "%choice%"=="7" goto opt_pdf
-if /i "%choice%"=="8" goto opt_github
+if /i "%choice%"=="1" goto opt_warm
+if /i "%choice%"=="2" goto opt_cold
+if /i "%choice%"=="3" goto opt_tests
+if /i "%choice%"=="4" goto opt_repl
+if /i "%choice%"=="5" goto opt_overflow
+if /i "%choice%"=="6" goto opt_compare
+if /i "%choice%"=="7" goto opt_pptx
+if /i "%choice%"=="8" goto opt_pdf
+if /i "%choice%"=="9" goto opt_github
 if /i "%choice%"=="A" goto opt_all
 if /i "%choice%"=="Q" goto opt_quit
 
 echo.
-echo [!] Invalid selection '%choice%'. Please choose 1-8, A, or Q.
+echo [!] Invalid selection '%choice%'. Please choose 1-9, A, or Q.
 ping 127.0.0.1 -n 2 >nul
 goto menu
 
-:opt_benchmarks
+:opt_warm
 cls
 echo ===============================================================================
-echo   STAGE 2: RUNNING 8 COMPILER BENCHMARKS (run_demo.py)
+echo   RUNNING BENCHMARKS WITH PERSISTENT CACHE (WARM RUN)
 echo ===============================================================================
 echo.
 python run_demo.py
+echo.
+echo ===============================================================================
+pause
+goto menu
+
+:opt_cold
+cls
+echo ===============================================================================
+echo   RUNNING FULL SYNTHESIS FROM SCRATCH (COLD RUN - NO CACHE)
+echo   (Evaluating thousands of candidates and invoking Z3 theorem prover)
+echo ===============================================================================
+echo.
+python run_demo.py --cold
 echo.
 echo ===============================================================================
 pause
@@ -95,18 +110,21 @@ echo ===========================================================================
 pause
 goto menu
 
-:opt_cache
+:opt_compare
 cls
 echo ===============================================================================
-echo   STAGE 6: PERSISTENT CACHE MEMOIZATION SPEEDUP DEMONSTRATION
-echo   Pass 1: Checking benchmarks...
+echo   STAGE 6: CACHE MEMOIZATION SPEEDUP DEMONSTRATION
 echo ===============================================================================
+echo.
+echo [1] Executing COLD RUN (Full Z3 Synthesis without cache):
+python run_demo.py --cold
+echo.
+echo -------------------------------------------------------------------------------
+echo [2] Executing WARM RUN (Instant retrieval from persistent cache):
 python run_demo.py
 echo.
-echo   Pass 2: Immediate re-execution from persistent cache (0.000s speedup):
 echo ===============================================================================
-python run_demo.py
-echo.
+echo   Notice: Cold run took ~3.8s while Warm run completed in 0.000s!
 echo ===============================================================================
 pause
 goto menu
@@ -181,7 +199,7 @@ python run_demo.py
 echo.
 echo ===============================================================================
 echo   All 6 Automated Stages Completed Successfully!
-echo   (For Stage 7: Evaluator-Selected Live Input, choose Option [3] in the menu)
+echo   (For Stage 7: Evaluator-Selected Live Input, choose Option [4] in the menu)
 echo ===============================================================================
 pause
 goto menu
