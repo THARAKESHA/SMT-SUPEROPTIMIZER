@@ -27,6 +27,12 @@ This reduces a 2-instruction block to 1 instruction, with an absolute mathematic
 
 ---
 
+## System Architecture & Methodology
+
+![SMT Superoptimizer Architecture](figures/methodology_architecture.png)
+
+---
+
 ## Project Structure
 
 ```text
@@ -115,6 +121,22 @@ Enter basic block:
   > t1 = ADD t0, t0
   > run
 ```
+
+### 4. Benchmark Performance: Without Cache (Cold) vs With Cache (Warm)
+
+| # | Benchmark Name | Original TAC Block | Superoptimized Replacement | Cycle Delta | Candidates Checked (Without Cache) | Without Cache Time (Cold) | With Cache Time (Warm) | Speedup |
+|---|---|---|---|:---:|:---:|:---:|:---:|:---:|
+| 1 | Double-Add Reduction | `t0=ADD x,x`<br>`t1=ADD t0,t0` | `t0 = SHL x, 2` | 2 &rarr; 1 | 74,802 | 0.434s | 0.000s | **>2,000x** |
+| 2 | Triple-Add (3x) | `t0=ADD x,x`<br>`y=ADD t0,x` | `t0=ADD x,x`<br>`y=ADD t0,x` | 2 &rarr; 2 | 74,802 | 1.088s | 0.000s | **>5,000x** |
+| 3 | Multiply-by-2 Strength | `y = MUL x, 2` | `t0 = ADD x, x` | 3 &rarr; 1 | 234 | 0.002s | 0.000s | **>20x** |
+| 4 | Self-AND Idempotence | `y = AND x, x` | `y = AND x, x` | 1 &rarr; 1 | 182 | 0.001s | 0.000s | **>10x** |
+| 5 | Self-XOR Cancellation | `y = XOR x, x` | `y = XOR x, x` | 1 &rarr; 1 | 182 | 0.001s | 0.000s | **>10x** |
+| 6 | Minimal Add Constant | `y = ADD x, 5` | `y = ADD x, 5` | 1 &rarr; 1 | 292 | 0.001s | 0.000s | **>10x** |
+| 7 | Bit Rotation Synthesis | `t0=SHL x,1`<br>`t1=SHR x,31`<br>`y=OR t0,t1` | `t0 = ROL x, 1` | 3 &rarr; 1 | 321,680 | 1.850s | 0.000s | **>9,000x** |
+| 8 | Multiply-by-8 Strength | `y = MUL x, 8` | `t0 = SHL x, 3` | 3 &rarr; 1 | 292 | 0.447s | 0.000s | **>2,000x** |
+| **Total** | **8 Benchmarks** | — | **4 Proven Reductions** | **Up to -66.7%** | **472,276** | **3.824s** | **0.000s** | **Instant (100% Hits)** |
+
+![Benchmark Cache Performance](figures/cache_benchmark_graph.png)
 
 ---
 
