@@ -94,6 +94,8 @@ All **44 automated tests** pass with 100% assertion success:
 * **Regression tests:** `DEFECT-01` regression check ensuring constant-only replacements (`y = CONST 0`) are accepted.
 * **Integration tests:** End-to-end multi-instruction benchmarks (double-add, strength reduction, 3-to-1 bit rotations).
 
+![Test Suite Coverage](figures/test_suite_coverage.png)
+
 ---
 
 ## Running the Benchmarks & Demonstrations
@@ -138,12 +140,16 @@ Enter basic block:
 
 ![Benchmark Cache Performance](figures/cache_benchmark_graph.png)
 
+![Cycle Cost Reduction](figures/cycle_cost_reduction.png)
+
 ---
 
 ## Key Technical Innovations
 
 1. **Commutative Symmetry Breaking:**  
    Replaces naive $N \times N$ permutations with combinations with replacement $\binom{N+1}{2} = \frac{N(N+1)}{2}$ for commutative opcodes (`ADD`, `AND`, `OR`, `XOR`, `MUL`), eliminating **45% to 50%** of redundant solver queries.
+
+![Symmetry Breaking Pruning](figures/symmetry_breaking_pruning.png)
 
 2. **Dynamic Constant Harvesting (`harvest_constants`):**  
    Analyzes input blocks to extract integer literals, boundary constants (`0`, `1`, `31`, `32`, `0xFFFFFFFF`), and bit-shift complements ($32 - k$).
